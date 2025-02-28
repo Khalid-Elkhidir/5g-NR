@@ -4,24 +4,32 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* HARQ state definitions */
+/**
+ * enum harq_state_t - Possible states of a HARQ process
+ * @HARQ_IDLE: Process is available for new transmissions
+ * @HARQ_ACTIVE: Process is currently handling a transmission
+ * @HARQ_WAIT_ACK: Process is waiting for acknowledgment
+ */
 typedef enum {
     HARQ_IDLE,
     HARQ_ACTIVE,
     HARQ_WAIT_ACK
 } harq_state_t;
 
-/* HARQ process structure.
-   It holds the necessary parameters for a single HARQ process.
-   - process_id: identifies the HARQ process.
-   - ndi: new data indicator (toggles for new transmissions).
-   - rv: redundancy version (indicates the transmission instance).
-   - tb_data: pointer to the current transport block data.
-   - tb_size: size (in bytes) of the transport block.
-   - num_retx: number of retransmissions attempted.
-   - soft_buffer: buffer for soft combining of retransmissions.
-   - state: current state of the HARQ process.
-*/
+/**
+ * struct harq_process_t - Represents a single HARQ process instance
+ * @process_id: Unique identifier for this HARQ process
+ * @state: Current operational state of the process
+ * @ndi: New Data Indicator - toggles for fresh transmissions
+ * @rv: Redundancy Version - indicates which version of data is being transmitted
+ * @tb_data: Pointer to the current transport block data
+ * @tb_size: Size of the transport block in bytes
+ * @num_retx: Counter for number of retransmission attempts
+ * @soft_buffer: Storage for combining multiple transmissions of same data
+ *
+ * This structure maintains all necessary state information for
+ * handling hybrid ARQ operations in 5G NR.
+ */
 typedef struct {
     int process_id;
     harq_state_t state;
@@ -30,61 +38,107 @@ typedef struct {
     uint8_t *tb_data;
     size_t tb_size;
     int num_retx;
-    uint8_t *soft_buffer;  // Buffer for soft combining
+    uint8_t *soft_buffer;
 } harq_process_t;
 
-/* Initialization for a HARQ process */
+/**
+ * harq_init_process - Initialize a new HARQ process
+ * @proc: Pointer to the HARQ process structure
+ * @process_id: Unique identifier to assign to this process
+ *
+ * Sets up a new HARQ process with default values and allocates
+ * necessary resources.
+ */
 void harq_init_process(harq_process_t *proc, int process_id);
 
-/* Downlink HARQ functions */
+/* Downlink HARQ Functions */
 
-/* Handle a new downlink transmission.
-   'received_ndi' is the indicator received from the PHY (from DL assignment).
-   'received_rv' is the redundancy version.
-   'tb_data' and 'tb_size' contain the new transport block.
-   This function decides whether to treat the reception as a new transmission or as a retransmission.
-*/
+/**
+ * harq_handle_dl_assignment - Process a new downlink transmission
+ * @proc: Target HARQ process
+ * @received_ndi: New Data Indicator from physical layer
+ * @received_rv: Redundancy Version for this transmission
+ * @tb_data: Transport block data received
+ * @tb_size: Size of the transport block
+ *
+ * Handles incoming downlink data, determining if it's a new transmission
+ * or retransmission based on NDI and RV values.
+ */
 void harq_handle_dl_assignment(harq_process_t *proc, int received_ndi, int received_rv,
-                               uint8_t *tb_data, size_t tb_size);
+                             uint8_t *tb_data, size_t tb_size);
 
-/* Process HARQ feedback (ACK/NACK) from the PHY for downlink.
-   'ack' should be 1 if the transport block was decoded correctly, 0 otherwise.
-*/
+/**
+ * harq_dl_process_feedback - Handle downlink acknowledgment
+ * @proc: Target HARQ process
+ * @ack: 1 for successful decode, 0 for failed decode
+ *
+ * Processes ACK/NACK feedback for downlink transmissions and
+ * manages retransmission if needed.
+ */
 void harq_dl_process_feedback(harq_process_t *proc, int ack);
 
-/* Uplink HARQ functions */
+/* Uplink HARQ Functions */
 
-/* Start a new uplink transmission.
-   The MAC layer provides the MAC PDU to be transmitted.
-   The function stores the PDU in the HARQ buffer and instructs the PHY to transmit.
-*/
+/**
+ * harq_ul_start_tx - Initiate an uplink transmission
+ * @proc: Target HARQ process
+ * @mac_pdu: MAC PDU data to transmit
+ * @pdu_size: Size of the MAC PDU
+ *
+ * Prepares and starts a new uplink transmission by storing the
+ * PDU and triggering physical layer transmission.
+ */
 void harq_ul_start_tx(harq_process_t *proc, uint8_t *mac_pdu, size_t pdu_size);
 
-/* Process uplink HARQ feedback from the PHY.
-   If a NACK is received, the function should trigger a retransmission.
-*/
+/**
+ * harq_ul_process_feedback - Handle uplink acknowledgment
+ * @proc: Target HARQ process
+ * @ack: 1 for successful transmission, 0 for failed transmission
+ *
+ * Processes feedback for uplink transmissions and schedules
+ * retransmission if necessary.
+ */
 void harq_ul_process_feedback(harq_process_t *proc, int ack);
 
-/* Interface stubs for interaction with the physical layer and RLC */
+/* Physical Layer Interface Functions */
 
-/* Transmit a downlink transport block on the physical channel.
-   This is a placeholder for the actual PHY transmission function.
-*/
+/**
+ * phy_transmit_dl - Send data to physical layer for downlink
+ * @proc: HARQ process containing data to transmit
+ *
+ * Interface function for triggering physical layer transmission
+ * of downlink transport blocks.
+ */
 void phy_transmit_dl(harq_process_t *proc);
 
-/* Instruct the PHY to combine new reception with previously stored soft data.
-   'new_data' and 'new_data_size' represent the recently received TB data.
-*/
+/**
+ * phy_combine_dl - Combine new data with stored soft bits
+ * @proc: HARQ process for combining
+ * @new_data: Recently received transport block
+ * @new_data_size: Size of the new transport block
+ *
+ * Combines newly received data with previously stored soft bits
+ * for improved decoding probability.
+ */
 void phy_combine_dl(harq_process_t *proc, uint8_t *new_data, size_t new_data_size);
 
-/* Transmit an uplink MAC PDU.
-   This function would trigger the PHY to transmit the stored uplink data.
-*/
+/**
+ * phy_transmit_ul - Send data to physical layer for uplink
+ * @proc: HARQ process containing data to transmit
+ *
+ * Interface function for triggering physical layer transmission
+ * of uplink transport blocks.
+ */
 void phy_transmit_ul(harq_process_t *proc);
 
-/* Deliver a successfully decoded MAC PDU to the RLC sublayer.
-   This is a placeholder for handing the decoded data to the upper layers.
-*/
+/**
+ * rlc_deliver_mac_pdu - Forward decoded PDU to RLC layer
+ * @mac_pdu: Successfully decoded MAC PDU
+ * @pdu_size: Size of the MAC PDU
+ *
+ * Delivers successfully decoded MAC PDUs to the RLC sublayer
+ * for further processing.
+ */
 void rlc_deliver_mac_pdu(uint8_t *mac_pdu, size_t pdu_size);
 
-#endif // HARQ_H
+#endif /* HARQ_H */

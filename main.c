@@ -9,29 +9,32 @@
 #include "pdcp/pdcp.h"
 #include "ipgen/ipgen.h"
 
-// Global downlink RLC entity pointer for loopback (set before loopback)
+/**
+ * global_rlc_dl_entity - Pointer to the downlink RLC entity used for loopback
+ * This pointer must be set before initiating the loopback process
+ */
 rlc_entity_t *global_rlc_dl_entity = NULL;
 
 int main(void) {
     printf("=== 5G NR Layer 2 Loopback Simulation ===\n");
 
-    // Obtain a global PDCP entity (initializes PDCP if not already done)
+    /* Initialize PDCP layer and get a handle to the PDCP entity */
     pdcp_entity_t *pdcp_ent = pdcp_get_entity();
 
-    // Create a HARQ process for MAC transmission (used in both uplink and loopback)
+    /* Create a HARQ process for handling retransmissions in MAC layer */
     harq_process_t *harq_ptr = mac_get_harq_process();
 
-    // Set up a downlink RLC entity in Transparent Mode for loopback.
+    /* Initialize downlink RLC entity in Transparent Mode for data loopback */
     rlc_entity_t rlc_dl;
     rlc_entity_establish(&rlc_dl, RLC_MODE_TM);
     global_rlc_dl_entity = &rlc_dl;
 
-    // Main processing loop.
+    /* Main simulation loop - processes packets continuously */
     while (1) {
         printf("\n-------------------------------\n");
         printf("Starting new packet transmission cycle...\n");
 
-        // Step 1: Generate a dummy IP packet.
+        /* Step 1: Create a test IP packet to simulate network traffic */
         size_t ip_packet_size = 0;
         uint8_t *ip_packet = generate_dummy_ip_packet(&ip_packet_size);
         if (!ip_packet) {
@@ -39,10 +42,9 @@ int main(void) {
             break;
         }
         printf("Network: Generated IP packet of %zu bytes.\n", ip_packet_size);
-        // For demonstration, print static IP info.
         printf("Network: Source IP = 192.168.1.100, Destination IP = 192.168.1.200\n");
 
-        // Step 2: PDCP processing.
+        /* Step 2: Process packet through PDCP layer (header addition, security) */
         size_t pdcp_pdu_size = 0;
         uint8_t *pdcp_pdu = pdcp_prepare_tx_pdu(pdcp_ent, ip_packet, ip_packet_size, &pdcp_pdu_size);
         free(ip_packet);
@@ -52,7 +54,7 @@ int main(void) {
         }
         printf("PDCP: Prepared PDCP PDU of %zu bytes.\n", pdcp_pdu_size);
 
-        // Step 3: RLC transmission (uplink simulation).
+        /* Step 3: Simulate uplink transmission through RLC layer */
         rlc_entity_t rlc_tx;
         rlc_entity_establish(&rlc_tx, RLC_MODE_TM);
         printf("RLC (TX): Instantiated Transparent Mode entity for uplink transmission.\n");
@@ -60,25 +62,28 @@ int main(void) {
         rlc_entity_release(&rlc_tx);
         printf("RLC (TX): Released uplink RLC entity.\n");
 
-        // (Simulate delay between uplink and loopback.)
+        /* Simulate network propagation delay */
         sleep(1);
 
-        // Step 4: MAC loopback simulation.
-        // In a real system, the MAC sublayer would receive the PDU from the PHY.
-        // Here we call mac_loopback_pdu() with the same PDCP PDU to simulate a downlink.
+        /* Step 4: Simulate MAC layer loopback
+         * In a real system, this data would come from the physical layer
+         * Here we simulate receiving the same PDU in downlink
+         */
         printf("MAC: Loopback simulation triggered.\n");
         mac_loopback_pdu(harq_ptr, pdcp_pdu, pdcp_pdu_size);
         free(pdcp_pdu);
 
-        // Step 5: (Inside loopback, the RLC downlink receive function is called,
-        // which in Transparent Mode simply forwards the PDU to PDCP. PDCP then processes it.)
-        // End of one complete chain.
+        /* Step 5: The loopback process will:
+         * - Pass data to RLC downlink
+         * - RLC (in transparent mode) forwards to PDCP
+         * - PDCP processes the received PDU
+         */
 
-        // Optional: Delay between cycles to simulate traffic rate.
+        /* Add delay between transmission cycles to control traffic rate */
         sleep(2);
     }
 
-    // Cleanup the global downlink RLC entity.
+    /* Clean up resources before exiting */
     rlc_entity_release(&rlc_dl);
     global_rlc_dl_entity = NULL;
     printf("Simulation terminated. Cleaning up entities.\n");
