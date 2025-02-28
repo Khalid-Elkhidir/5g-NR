@@ -123,6 +123,7 @@ The simulation provides detailed logging at each stage:
 
 ## Authors
 - Mustafa Kamil Elsheikh Ibrahim - 174098
+- Ahmed Osman Ahmed Ibrahim - 174013
 
 ## License
 - MIT License
