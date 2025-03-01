@@ -125,6 +125,7 @@ The simulation provides detailed logging at each stage:
 - Mustafa Kamil Elsheikh Ibrahim - 174098
 - Ahmed Osman Ahmed Ibrahim - 174013
 - Khalid Fadhl Elmargi Bakhit Elkhidir - 174030
+- Omer Abdelaziz Ibrahim Mohammed - 174058
 
 ## License
 - MIT License
