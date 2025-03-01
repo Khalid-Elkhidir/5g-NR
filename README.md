@@ -124,11 +124,12 @@ The simulation provides detailed logging at each stage:
 ## Authors
 - Mustafa Kamil Elsheikh Ibrahim - 174098
 - Ahmed Osman Ahmed Ibrahim - 174013
+- Khalid Fadhl Elmargi Bakhit Elkhidir - 174030
 
 ## License
 - MIT License
 - Copyright (c) 2024    
 
 ## Acknowledgments
-- 3GPP specifications and standards
+- 3GPP specifications and standards v2
 - Open source community
