@@ -127,8 +127,8 @@ The simulation provides detailed logging at each stage:
 - Khalid Fadhl Elmargi Bakhit Elkhidir - 174030
 - Omer Abdelaziz Ibrahim Mohammed - 174058
 - Imad Mohammed Abdualrahman Abbas - 174056
-- Abubakr Abdulmoniem Osman Mohammed Saeed - 174001
-- Masy Haitham Ahmed Mohammed Khair - 174067
+- Abubakr Abdelmoneim Osman MohammedSaeed - 174001
+- Masy Haitham Ahmed MohammedKhair - 174067
 - Amjed Mohammed Babiker Mohammed - 174020
 - Wais Kamal Wais Mohammed - 174110
 
