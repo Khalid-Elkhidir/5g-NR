@@ -83,7 +83,7 @@ This project implements a simulation of the 5G NR Layer 2 protocol stack. It int
 ### Build Instructions
 ```bash
 # Clone the repository
-git clone [repository-url]
+git clone https://github.com/Khalid-Elkhidir/5g-NR.git
 cd 5g-nr
 
 # Build the project
@@ -126,6 +126,11 @@ The simulation provides detailed logging at each stage:
 - Ahmed Osman Ahmed Ibrahim - 174013
 - Khalid Fadhl Elmargi Bakhit Elkhidir - 174030
 - Omer Abdelaziz Ibrahim Mohammed - 174058
+- Imad Mohammed Abdualrahman Abbas - 174056
+- Abubakr Abdulmoniem Osman Mohammed Saeed - 174001
+- Masy Haitham Ahmed Mohammed Khair - 174067
+- Amjed Mohammed Babiker Mohammed - 174020
+- Wais Kamal Wais Mohammed - 174110
 
 ## License
 - MIT License
